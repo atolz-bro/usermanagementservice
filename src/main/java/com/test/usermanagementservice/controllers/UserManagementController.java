@@ -7,10 +7,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.RestController;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
 
+@Tag(name = "User Management Controller", description = "Endpoints for user apis\n The apis requires Authorization header and jwt token of an already authenticated user(e.g admin)")
 @RestController
 @RequestMapping("/api/users")
 public class UserManagementController {
@@ -34,13 +36,16 @@ public class UserManagementController {
     // Create User
     @Operation(
             summary = "Create a new user",
-            description = "Creates a new user with encoded password and returns the saved user object"
+            description = "Creates a new user with encoded password and returns the saved user object",
+            security = @SecurityRequirement(name = "bearerAuth")
+
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully created",
                     content = @Content(schema = @Schema(implementation = AppUser.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody AppUser user) {
         if(user.getUsername() == null || user.getPassword() == null || user.getEmail() == null){
@@ -60,7 +65,8 @@ public class UserManagementController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found",
                     content = @Content(schema = @Schema(implementation = AppUser.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @GetMapping("/{id}")
     public ResponseEntity<AppUser> getUser(@PathVariable Long id) {
@@ -77,7 +83,8 @@ public class UserManagementController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully updated",
                     content = @Content(schema = @Schema(implementation = AppUser.class))),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AppUser updatedUser) {
@@ -100,7 +107,8 @@ public class UserManagementController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully deleted"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
