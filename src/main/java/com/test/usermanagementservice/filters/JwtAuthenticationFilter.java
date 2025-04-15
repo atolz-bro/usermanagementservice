@@ -3,6 +3,7 @@ package com.test.usermanagementservice.filters;
 
 import com.test.usermanagementservice.service.CustomUserDetailsService;
 import com.test.usermanagementservice.util.JwtUtil;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,23 +39,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            try{
+                String token = authorizationHeader.substring(7);
+                String username = jwtUtil.extractUsername(token);
 
-            String token = authorizationHeader.substring(7);
-            String username = jwtUtil.extractUsername(token);
+                System.out.println("extracted username: "+ username);
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            System.out.println("extracted username: "+ username);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    System.out.println("DB username: "+ userDetails.getUsername());
 
-                System.out.println("DB username: "+ userDetails.getUsername());
-                if (jwtUtil.validateToken(token, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails.getUsername(), null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                }else{
-                    throw new BadCredentialsException("JWT Authentication failed");
+
                 }
+            } catch (MalformedJwtException e) {
+                System.out.println("Error in jwt hhh");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Unauthorized - Invalid or missing JWT token\"}");
+
+                return;
             }
+
         }
         chain.doFilter(request, response);
     }

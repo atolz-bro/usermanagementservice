@@ -42,8 +42,11 @@ public class UserManagementController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully created",
-                    content = @Content(schema = @Schema(implementation = AppUser.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AppUser.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token")
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
@@ -64,9 +67,11 @@ public class UserManagementController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found",
-                    content = @Content(schema = @Schema(implementation = AppUser.class))),
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AppUser.class))),
             @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token")
     })
     @GetMapping("/{id}")
     public ResponseEntity<AppUser> getUser(@PathVariable Long id) {
@@ -82,9 +87,11 @@ public class UserManagementController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User successfully updated",
-                    content = @Content(schema = @Schema(implementation = AppUser.class))),
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AppUser.class))),
             @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token")
     })
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody AppUser updatedUser) {
@@ -106,9 +113,13 @@ public class UserManagementController {
             description = "Deletes a user from the system based on the provided ID"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User successfully deleted"),
+            @ApiResponse(responseCode = "200", description = "User successfully deleted",
+            content = @Content(
+            mediaType = "application/text",
+                    schema = @Schema(implementation = String.class)
+            )),
             @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+            @ApiResponse(responseCode = "401", description = "Invalid or missing JWT token")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
